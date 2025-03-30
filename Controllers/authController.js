@@ -1,6 +1,10 @@
 import User from "../Models/userModel.js";
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
 import { errorHandler } from "../Utills/error.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const signup = async (req, res, next) => {
   try {
@@ -31,8 +35,44 @@ export const signup = async (req, res, next) => {
     const newUser = new User({ username, email, password: hashedPassword });
     await newUser.save();
 
-    return res.status(201).json({message: "User Registered successfully"})
+    return res.status(201).json({ message: "User Registered successfully" });
   } catch (error) {
-    next(error)
+    next(error);
+  }
+};
+
+export const signIn = async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(errorHandler(400, "Both email and password required"));
+  }
+
+  try {
+    const validUser = await User.findOne({ email });
+    if (!validUser) return next(errorHandler(404, "User Not found"));
+
+    const validPassword = await bcrypt.compare(password, validUser.password);
+    if (!validPassword) return next(errorHandler(401, "Invalid Credentials"));
+
+    const { password: hashPassword, ...rest} = validUser._doc;
+    const token = jwt.sign(
+      { id: validUser._id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // convert 7days into milli seconds
+    });
+
+    res.status(200).json({ success: true, message: "User loggedin successfully", rest})
+  } catch (error) {
+    next(error);
   }
 };
