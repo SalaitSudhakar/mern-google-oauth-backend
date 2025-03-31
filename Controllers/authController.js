@@ -12,9 +12,10 @@ export const signup = async (req, res, next) => {
 
     // validate datas
     if (!username || !email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "username, email, Password all are required" });
+      return res.status(400).json({
+        success: false,
+        message: "username, email, Password all are required",
+      });
     }
 
     // Check for existing user with the same email
@@ -55,14 +56,10 @@ export const signIn = async (req, res, next) => {
     const validPassword = await bcrypt.compare(password, validUser.password);
     if (!validPassword) return next(errorHandler(401, "Invalid Credentials"));
 
-    const { password: hashPassword, ...rest} = validUser._doc;
-    const token = jwt.sign(
-      { id: validUser._id },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
+    const { password: hashPassword, ...rest } = validUser._doc;
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.cookie("access_token", token, {
       httpOnly: true,
@@ -71,7 +68,76 @@ export const signIn = async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // convert 7days into milli seconds
     });
 
-    res.status(200).json({ success: true, message: "User loggedin successfully", rest})
+    res
+      .status(200)
+      .json({ success: true, message: "User loggedin successfully", rest });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const google = async (req, res, next) => {
+  console.log("Received request body:", req.body); // Debugging log
+
+  if (!req.body || !req.body.email) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid request data" });
+  }
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    console.log(user);
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const { password: hashedPassword, ...rest } = user._doc;
+
+      res.cookie("access_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // convert 7days into milli seconds
+      });
+
+      res
+        .status(200)
+        .json({ success: true, message: "User Loggedin successfully", rest });
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+      const username =
+        req.body.name.split(" ").join("").toLowerCase() +
+        Math.random().toString().slice(-8);
+
+      const email = req.body.email;
+
+      const profile = req.body.photo;
+
+      const newUser = new User({
+        username,
+        email,
+        password: hashedPassword,
+        profile,
+      });
+
+      await newUser.save();
+      console.log(username, email, hashedPassword, profile);
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const { password: hashedPassword2, ...rest } = newUser._doc;
+
+      res.cookie("access_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // convert 7days into milli seconds
+      });
+
+      res
+        .status(201)
+        .json({ success: true, message: "User Registered successfully", rest });
+    }
   } catch (error) {
     next(error);
   }

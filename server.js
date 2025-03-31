@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from 'cors';
+import cors from "cors";
 import connectDb from "./Database/config.js";
 import userRoute from "./Routes/userRoute.js";
 import authRoute from "./Routes/authRoute.js";
@@ -12,7 +12,7 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(express.json());
-app.use(cors())
+app.use(cors({ credentials: true }));
 
 app.get("/", (req, res) => {
   res.send("Welcome to my API");
