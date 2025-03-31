@@ -70,7 +70,7 @@ export const signIn = async (req, res, next) => {
 
     res
       .status(200)
-      .json({ success: true, message: "User loggedin successfully", rest });
+      .json({ success: true, message: "User loggedin successfully", data: rest });
   } catch (error) {
     next(error);
   }
@@ -100,7 +100,7 @@ export const google = async (req, res, next) => {
 
       res
         .status(200)
-        .json({ success: true, message: "User Loggedin successfully", rest });
+        .json({ success: true, message: "User Loggedin successfully", data: rest });
     } else {
       const generatedPassword =
         Math.random().toString(36).slice(-8) +
@@ -123,7 +123,6 @@ export const google = async (req, res, next) => {
       });
 
       await newUser.save();
-      console.log(username, email, hashedPassword, profile);
       const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
       const { password: hashedPassword2, ...rest } = newUser._doc;
 
@@ -136,7 +135,7 @@ export const google = async (req, res, next) => {
 
       res
         .status(201)
-        .json({ success: true, message: "User Registered successfully", rest });
+        .json({ success: true, message: "User Registered successfully", data: rest });
     }
   } catch (error) {
     next(error);
