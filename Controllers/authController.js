@@ -14,7 +14,7 @@ export const signup = async (req, res, next) => {
     if (!username || !email || !password) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing Details" });
+        .json({ success: false, message: "username, email, Password all are required" });
     }
 
     // Check for existing user with the same email
