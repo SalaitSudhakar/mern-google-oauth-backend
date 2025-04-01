@@ -4,9 +4,6 @@ import {errorHandler} from '../Utills/error.js'; // Ensure this utility exists f
 
 // Update user
 export const updateUser = async (req, res, next) => {
-  console.log("API is triggered");
-
-  console.log(req.user.id, req.params.id)
   
   if (req.user.id !== req.params.id) {
     return next(errorHandler(401, "You can update only your account!"));
@@ -24,8 +21,6 @@ export const updateUser = async (req, res, next) => {
     }
     if (req.file) updateData.profile = req.file.path; // Handle profile image
 
-    console.log("updateData ", updateData);
-
     // Update user in the database with new: true to get the updated document
     const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
 
@@ -34,8 +29,6 @@ export const updateUser = async (req, res, next) => {
     }
 
     await updatedUser.save();
-
-    console.log("user updated successfully");
 
     res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
