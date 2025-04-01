@@ -61,6 +61,8 @@ export const signIn = async (req, res, next) => {
       expiresIn: "7d",
     });
 
+    console.log("data", rest)
+
     res.cookie("access_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -77,8 +79,6 @@ export const signIn = async (req, res, next) => {
 };
 
 export const google = async (req, res, next) => {
-  console.log("Received request body:", req.body); // Debugging log
-
   if (!req.body || !req.body.email) {
     return res
       .status(400)
@@ -141,3 +141,7 @@ export const google = async (req, res, next) => {
     next(error);
   }
 };
+
+export const signOut = async (req, res) => {
+  res.clearCookie('access_token').status(200).json("User logged out successfully")
+}

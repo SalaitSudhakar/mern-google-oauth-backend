@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDb from "./Database/config.js";
 import userRoute from "./Routes/userRoute.js";
 import authRoute from "./Routes/authRoute.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -11,8 +12,11 @@ const app = express();
 
 const port = process.env.PORT || 4000;
 
+const allowedOrigins = ["http://localhost:5173"]
+
 app.use(express.json());
-app.use(cors({ credentials: true }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cookieParser())
 
 app.get("/", (req, res) => {
   res.send("Welcome to my API");
