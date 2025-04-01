@@ -61,7 +61,7 @@ export const signIn = async (req, res, next) => {
       expiresIn: "7d",
     });
 
-    console.log("data", rest)
+    console.log("data", rest);
 
     res.cookie("access_token", token, {
       httpOnly: true,
@@ -72,7 +72,11 @@ export const signIn = async (req, res, next) => {
 
     res
       .status(200)
-      .json({ success: true, message: "User loggedin successfully", data: rest });
+      .json({
+        success: true,
+        message: "User loggedin successfully",
+        user: rest,
+      });
   } catch (error) {
     next(error);
   }
@@ -100,7 +104,11 @@ export const google = async (req, res, next) => {
 
       res
         .status(200)
-        .json({ success: true, message: "User Loggedin successfully", data: rest });
+        .json({
+          success: true,
+          message: "User Loggedin successfully",
+          user: rest,
+        });
     } else {
       const generatedPassword =
         Math.random().toString(36).slice(-8) +
@@ -135,7 +143,11 @@ export const google = async (req, res, next) => {
 
       res
         .status(201)
-        .json({ success: true, message: "User Registered successfully", data: rest });
+        .json({
+          success: true,
+          message: "User Registered successfully",
+          user: rest,
+        });
     }
   } catch (error) {
     next(error);
@@ -143,5 +155,12 @@ export const google = async (req, res, next) => {
 };
 
 export const signOut = async (req, res) => {
-  res.clearCookie('access_token').status(200).json("User logged out successfully")
-}
+  res
+    .clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "strict",
+    })
+    .status(200)
+    .json("User logged out successfully");
+};
